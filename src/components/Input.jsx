@@ -1,4 +1,6 @@
-import { useState } from "react";
+import axios from "axios";
+import { useContext, useState } from "react";
+import { DataContext } from "../DataContext";
 
 const stations = [
     "AG-DMS",
@@ -44,22 +46,35 @@ const stations = [
 ];
 
 export default function Input() {
-    const [stationName, setStationName] = useState("n");
+    const [stationName, setStationName] = useState("");
     const [vehicleType, setVehicleType] = useState("0");
 
-    function log(e){
+    const { setData, reqBody, setReqBody } = useContext(DataContext) 
+
+    async function getData(e){
         e.preventDefault();
         if (stationName === "") {
             alert("Please select a station name.");
             return;
         }
-        console.log("Selected Station:", stationName);
-        console.log("Selected Vehicle Type:", vehicleType);
+
+        const newReqBody = [
+            ...reqBody,
+            {
+                station_name: stationName,
+                vehicle_type: vehicleType
+            }
+        ];
+
+        setReqBody(newReqBody);
+     
+        const { data } = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/available`, newReqBody);
+        setData(data);
     }
 
     return (
-        <div className="flex gap-3 justify-center items-end">
-            <div className="w-80">
+        <form onSubmit={(e) => getData(e)} className="flex gap-3 justify-center items-end">
+            <div className="w-96">
                 <label htmlFor="station" className="text-sm font-medium text-gray-700 mb-1">
                     Select Station Name
                 </label>
@@ -75,7 +90,7 @@ export default function Input() {
                     ))}
                 </select>
             </div>
-            <div className="w-80">
+            <div className="w-96">
                 <label htmlFor="vehicle" className="text-sm font-medium text-gray-700 mb-1">
                     Select Vehicle Type
                 </label>
@@ -90,9 +105,9 @@ export default function Input() {
                 </select>
             </div>
             <button
-                className="bg-primary rounded-md w-48 h-fit py-2 text-white font-semibold"
-                onClick={(e) => log(e)}
-                >Search</button>
-        </div>
+                className="bg-primary rounded-md w-fit h-fit px-10 py-2 text-white font-semibold"
+                type="submit"
+                >View</button>
+        </form>
     );
 }
