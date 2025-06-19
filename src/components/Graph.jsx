@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { DataContext } from "../DataContext";
 import {
   LineChart, Line, XAxis, YAxis, Label, Legend, CartesianGrid, Tooltip, ResponsiveContainer
@@ -29,7 +29,7 @@ export default function Graph() {
                     <YAxis>
                         <Label value="Available Slots" angle={-90} position="insideLeft" dy={50} />
                     </YAxis>
-                    <Tooltip labelFormatter={(value) => dayjs(value).format("hh:mm A")} />
+                    <Tooltip labelFormatter={(value) => dayjs(value).format("dddd, DD MMM YYYY, hh:mm A")} />
                     {lineKeys.map((key, index) => (
                         <Line
                             key={key}

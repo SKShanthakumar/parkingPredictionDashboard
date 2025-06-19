@@ -5,7 +5,10 @@ export const DataContext = createContext();
 
 export function DataContextProvider({ children }) {
     const [data, setData] = useState([]);
-    const [reqBody, setReqBody] = useState([]);
+    const [reqBody, setReqBody] = useState({
+        stations: [],
+        days: 1
+    });
 
     useEffect(() => {
         if (data && Array.isArray(data.availability)) {
@@ -27,12 +30,18 @@ export function DataContextProvider({ children }) {
         
         rawData.forEach(({ station, vehicle, availability }) => {
             const key = `${capitalize(station)} - ${capitalize(vehicle)}`;
-            availability.forEach(({ timestamp, available }) => {
-            if (!merged[timestamp]) {
-                merged[timestamp] = { timestamp };
+            if (Array.isArray(availability)) {
+                availability.forEach(({ timestamp, available }) => {
+                    if (!merged[timestamp]) {
+                        merged[timestamp] = { timestamp };
+                    }
+                    merged[timestamp][key] = available;
+                });
             }
-            merged[timestamp][key] = available;
-            });
+            else{
+                alert(`Data unavailable for ${key}`)
+                deleteData(key, false);
+            }
         });
         
         // Convert merged object to sorted array by timestamp
@@ -41,13 +50,15 @@ export function DataContextProvider({ children }) {
         );
     }
     
-    const deleteData = (keyToRemove) => {
-        const filtered = data.map(obj => {
-            const { [keyToRemove]: _, ...rest } = obj;
-            return rest;
-        });
-        setData(filtered);
-
+    const deleteData = (keyToRemove, flag = true) => {
+        if (flag){
+            const filtered = data.map(obj => {
+                const { [keyToRemove]: _, ...rest } = obj;
+                return rest;
+            });
+            setData(filtered);
+        }
+        
         let [ stationName, vehicleType] = keyToRemove.split(" - ");
         if (vehicleType === "Two Wheeler")
             vehicleType = "0";
@@ -57,10 +68,14 @@ export function DataContextProvider({ children }) {
         if (stationName === "Arignar Anna Alandur")
             stationName = "Arignar Anna Alandur ";
 
-        const newReqBody = reqBody.filter(
-            (item) =>
-            !(item.station_name === stationName && item.vehicle_type === vehicleType)
-        );
+        const newReqBody = {
+            stations: reqBody.stations.filter(
+                (item) =>
+                !(item.station_name === stationName && item.vehicle_type === vehicleType)
+            ),
+            days: reqBody.days
+        }
+
         setReqBody(newReqBody);
         };
 
